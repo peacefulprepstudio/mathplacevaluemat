@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Place Value Mat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@500;600;700&display=swap">
+<style>
+/* Layout: toolbar of controls on top, four tall columns (thousands to ones) with ten-frame style dot grids, column values and total below */
+:root{--bg:#f6f2ec;--fg:#243a3c;--mut:#6a7b7d;--card:#ffffff;--line:#d3dcd8;--slate:#3f5a5c;--on-slate:#ffffff;--dot:#4f7f9a;--dot-line:#2f4a5c;
+--sage:#c9d4c5;--blue:#c5d3da;--sand:#ead9c9;--accent:#8a6f5a;--sel:#4f7f9a;--drop:#dfeaf0;--warn:#f3dcc4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141b1d;--fg:#e6eeee;--mut:#9fb0b3;--card:#1c2629;--line:#2f3d40;--slate:#7fb7b5;--on-slate:#10201f;--dot:#7fb7d4;--dot-line:#d9eef6;--sage:#2b3d33;--blue:#26363f;--sand:#3a2f27;--accent:#d3b79e;--sel:#7fb7d4;--drop:#22353d;--warn:#4a3a28;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141b1d;--fg:#e6eeee;--mut:#9fb0b3;--card:#1c2629;--line:#2f3d40;--slate:#7fb7b5;--on-slate:#10201f;--dot:#7fb7d4;--dot-line:#d9eef6;--sage:#2b3d33;--blue:#26363f;--sand:#3a2f27;--accent:#d3b79e;--sel:#7fb7d4;--drop:#22353d;--warn:#4a3a28;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:500 16px/1.4 Inter,system-ui,sans-serif;margin:0;padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-user-select:none;user-select:none}
+.app{max-width:1100px;margin:0 auto}
+h1{font:600 clamp(24px,3.6vw,34px)/1.1 Fraunces,Georgia,serif;margin:0 0 4px}
+.hint{color:var(--mut);margin:0 0 14px;font-size:15px;max-width:70ch}
+.bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:16px}
+.grp{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 8px}
+.grp b{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;padding:0 4px}
+button{font:700 18px/1 Inter,sans-serif;color:var(--fg);background:var(--blue);border:2px solid var(--slate);border-radius:10px;min-width:56px;min-height:46px;padding:0 14px;cursor:pointer}
+button:hover{filter:brightness(.97)}button:active{transform:translateY(1px)}
+button:focus-visible,.col:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+button.ghost{background:var(--card)}
+button[aria-pressed="true"]{background:var(--slate);color:var(--on-slate)}
+.mat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.6vw,18px)}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0;cursor:pointer;border-radius:14px}
+.head{background:var(--slate);color:var(--on-slate);text-align:center;font-weight:700;border-radius:10px;padding:8px 4px;font-size:clamp(12px,1.8vw,19px)}
+.box{background:var(--card);border:3px solid var(--line);border-radius:12px;min-height:clamp(210px,38vh,380px);padding:clamp(6px,1.2vw,14px);align-content:start;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(3px,.7vw,9px);transition:background .15s,border-color .15s}
+.col.sel .box{border-color:var(--sel)}
+.col.sel .head{outline:3px solid var(--sel);outline-offset:2px}
+.col.over .box{background:var(--drop)}
+.col.pop .box{animation:pop .5s ease}
+@keyframes pop{0%{background:var(--sage)}100%{background:var(--card)}}
+@media (prefers-reduced-motion:reduce){.col.pop .box{animation:none}}
+.dot{aspect-ratio:1;border-radius:50%;background:var(--dot);border:2px solid var(--dot-line);touch-action:none;cursor:grab}
+.dot:active{cursor:grabbing}
+.val{background:var(--sand);border:2px solid var(--accent);border-radius:10px;text-align:center;font:600 clamp(18px,3vw,30px)/1 Fraunces,Georgia,serif;padding:8px 4px;font-variant-numeric:tabular-nums}
+.trade{min-height:44px;font-size:15px;background:var(--warn);width:100%}
+.trade[hidden]{display:none}
+.total{margin:18px auto 0;max-width:520px;background:var(--sage);border:3px solid var(--slate);border-radius:14px;text-align:center;font:600 clamp(26px,4.6vw,44px)/1.1 Fraunces,Georgia,serif;padding:12px 10px;font-variant-numeric:tabular-nums}
+.total small{display:block;font:600 13px/1 Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:4px}
+.msg{min-height:22px;text-align:center;color:var(--accent);font-size:15px;margin-top:10px}
+.ghostdot{position:fixed;pointer-events:none;border-radius:50%;background:var(--dot);border:2px solid var(--dot-line);z-index:50;transform:translate(-50%,-50%);box-shadow:0 6px 14px rgba(0,0,0,.3)}
+@media (max-width:560px){button{min-width:48px;padding:0 10px}.box{min-height:190px}}
+</style></head><body>
+<div class="app">
+<h1>Place Value Mat</h1>
+<p class="hint">Tap a column, then add dots. Drag dots from one column to another. When a place gets to 10, watch what happens in the next place.</p>
+<div class="bar">
+ <div class="grp" role="group" aria-label="Add or remove dots in the selected column"><b>Dots</b>
+  <button id="m5" class="ghost" aria-label="Remove 5 dots">−5</button><button id="m1" class="ghost" aria-label="Remove 1 dot">−1</button>
+  <button id="p1" aria-label="Add 1 dot">+1</button><button id="p5" aria-label="Add 5 dots">+5</button></div>
+ <div class="grp" role="group" aria-label="Options"><b>Options</b>
+  <button id="auto" class="ghost" aria-pressed="true">Auto-trade: On</button>
+  <button id="show" class="ghost" aria-pressed="true">Number: Shown</button>
+  <button id="clear" class="ghost" aria-label="Clear the mat">Clear</button></div>
+</div>
+<div class="mat" id="mat"></div>
+<div class="total" id="total"></div>
+<div class="msg" id="msg" role="status" aria-live="polite"></div>
+</div>
+<script>
+const NAMES=['Thousands','Hundreds','Tens','Ones'],PV=[1000,100,10,1];
+let c=[0,0,5,6],sel=3,auto=true,show=true,drag=null;
+const matEl=document.getElementById('mat'),totalEl=document.getElementById('total'),msgEl=document.getElementById('msg');
+const fmt=n=>n.toLocaleString('en-US');
+const cols=NAMES.map((n,i)=>{const col=document.createElement('div');col.className='col';col.tabIndex=0;col.dataset.i=i;col.setAttribute('role','button');col.setAttribute('aria-label',n+' column');
+ col.innerHTML='<div class="head">'+n+'</div><div class="box"></div><div class="val"></div><button class="trade" hidden>Trade 10 for 1</button>';
+ matEl.appendChild(col);
+ col.addEventListener('click',e=>{if(e.target.closest('.trade'))return;sel=i;render();});
+ col.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel=i;render();}});
+ col.querySelector('.trade').addEventListener('click',()=>{trade(i,true);render();});
+ col.querySelector('.box').addEventListener('pointerdown',e=>{const d=e.target.closest('.dot');if(!d||c[i]<1)return;e.preventDefault();startDrag(i,e);});
+ return col;});
+function setMsg(t){msgEl.textContent=t||'';}
+function trade(i,flash){ // trade 10 in column i for 1 in column i-1
+ if(i<1||c[i]<10)return false;
+ if(c[i-1]>=9&&i-1===0){setMsg('This mat stops at thousands, so the thousands column is full.');return false;}
+ c[i]-=10;c[i-1]+=1;if(flash){const el=cols[i-1];el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
+ setMsg('10 '+NAMES[i].toLowerCase()+' traded for 1 '+NAMES[i-1].toLowerCase().replace(/s$/,'')+'.');return true;}
+function settle(i){let j=i;while(auto&&j>0&&c[j]>=10){if(!trade(j,true))break;j--;}}
+function add(i,n){setMsg('');if(i===0)c[0]=Math.min(9,c[0]+n);else{c[i]+=n;settle(i);}}
+function remove(i,n){setMsg('');c[i]=Math.max(0,c[i]-n);}
+function render(){
+ cols.forEach((col,i)=>{
+  col.classList.toggle('sel',i===sel);
+  const shown=c[i]-(drag&&drag.from===i?1:0);
+  const box=col.querySelector('.box');
+  if(box.childElementCount!==shown){box.innerHTML='<span class="dot"></span>'.repeat(Math.max(0,shown));}
+  col.querySelector('.val').textContent=fmt(c[i]*PV[i]);
+  const t=col.querySelector('.trade');t.hidden=!(c[i]>=10&&i>0);
+  t.textContent='Trade 10 for 1 '+(i>0?NAMES[i-1].replace(/s$/,'').toLowerCase():'');});
+ const n=c[0]*1000+c[1]*100+c[2]*10+c[3];
+ totalEl.innerHTML='<small>Number on the mat</small>'+(show?fmt(n):'?');
+ document.getElementById('auto').textContent='Auto-trade: '+(auto?'On':'Off');
+ document.getElementById('auto').setAttribute('aria-pressed',auto);
+ document.getElementById('show').textContent='Number: '+(show?'Shown':'Hidden');
+ document.getElementById('show').setAttribute('aria-pressed',show);}
+function startDrag(i,e){
+ const d=e.target.closest('.dot').getBoundingClientRect();
+ const g=document.createElement('div');g.className='ghostdot';g.style.width=d.width+'px';g.style.height=d.height+'px';document.body.appendChild(g);
+ drag={from:i,g};pos(e);render();
+ window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',up,{once:true});}
+function pos(e){drag.g.style.left=e.clientX+'px';drag.g.style.top=e.clientY+'px';}
+function overCol(e){const el=document.elementFromPoint(e.clientX,e.clientY);const col=el&&el.closest('.col');return col?+col.dataset.i:-1;}
+function mv(e){if(!drag)return;pos(e);const j=overCol(e);cols.forEach((col,i)=>col.classList.toggle('over',i===j&&j!==drag.from));}
+function up(e){window.removeEventListener('pointermove',mv);if(!drag)return;
+ const j=overCol(e),from=drag.from;drag.g.remove();drag=null;cols.forEach(col=>col.classList.remove('over'));
+ if(j>=0&&j!==from){setMsg('');if(j===0&&c[0]>=9){setMsg('This mat stops at thousands, so the thousands column is full.');}else{c[from]-=1;c[j]+=1;settle(j);sel=j;}}
+ render();}
+document.getElementById('p1').onclick=()=>{add(sel,1);render();};
+document.getElementById('p5').onclick=()=>{add(sel,5);render();};
+document.getElementById('m1').onclick=()=>{remove(sel,1);render();};
+document.getElementById('m5').onclick=()=>{remove(sel,5);render();};
+document.getElementById('auto').onclick=()=>{auto=!auto;setMsg(auto?'':'Auto-trade is off. Students make the trade with the Trade button.');if(auto)cols.forEach((_,i)=>settle(i));render();};
+document.getElementById('show').onclick=()=>{show=!show;render();};
+document.getElementById('clear').onclick=()=>{c=[0,0,0,0];setMsg('');render();};
+render();
+</script>
+</body></html>
